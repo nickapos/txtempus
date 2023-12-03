@@ -55,5 +55,5 @@ DCF77TimeSignalSource::GetModulationForSecond(int second) {
   if (second >= 59)
     return {{CarrierPower::HIGH, 0}};  // Synchronization
   const bool bit = time_bits_ & (1LL << second);
-  return {{CarrierPower::LOW, bit ? 200 : 100}, {CarrierPower::HIGH, 0}};
+  return {{CarrierPower::OFF, bit ? 200 : 100}, {CarrierPower::HIGH, 0}};
 }

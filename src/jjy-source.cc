@@ -60,7 +60,7 @@ void JJYTimeSignalSource::PrepareMinute(time_t t) {
 TimeSignalSource::SecondModulation
 JJYTimeSignalSource::GetModulationForSecond(int sec) {
   if (sec == 0 || sec % 10 == 9 || sec > 59)
-    return {{CarrierPower::HIGH, 200}, {CarrierPower::LOW, 0}};
+    return {{CarrierPower::HIGH, 200}, {CarrierPower::OFF, 0}};
   const bool bit = time_bits_ & (1LL << (59 - sec));
-  return {{CarrierPower::HIGH, bit ? 500 : 800}, {CarrierPower::LOW, 0}};
+  return {{CarrierPower::HIGH, bit ? 500 : 800}, {CarrierPower::OFF, 0}};
 }
