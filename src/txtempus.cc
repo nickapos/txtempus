@@ -90,6 +90,24 @@ time_t ParseLocalTime(const char *time_string) {
   return mktime(&tm);
 }
 
+// Returns a time_t based on "base" (keeping its time-of-day), but with the
+// date replaced by the one given in "date_string" ("YYYY-MM-DD").
+// Returns 0 if the date string could not be parsed.
+time_t OverrideDate(time_t base, const char *date_string) {
+  struct tm tm_base;
+  localtime_r(&base, &tm_base);
+
+  struct tm tm_date = {};
+  const char *final_pos = strptime(date_string, "%Y-%m-%d", &tm_date);
+  if (!final_pos || *final_pos) return 0;
+
+  tm_date.tm_hour = tm_base.tm_hour;
+  tm_date.tm_min = tm_base.tm_min;
+  tm_date.tm_sec = 0;
+  tm_date.tm_isdst = -1;
+  return mktime(&tm_date);
+}
+
 void PrintLocalTime(time_t t) {
   char buf[32];
   struct tm tm;
@@ -145,6 +163,8 @@ int usage(const char *msg, const char *progname) {
           "(default: no limit)\n"  // in truth: a couple thousand years...
           "\t-t 'YYYY-MM-DD HH:MM' : Transmit the given local time "
           "(default: now)\n"
+          "\t-d 'YYYY-MM-DD'      : Override the date of the transmitted "
+          "time, keeping the original time-of-day (default: unchanged)\n"
           "\t-z <minutes>          : Transmit the time offset from local "
           "(default: 0 minutes)\n"
           "\t-v                    : Verbose.\n"
@@ -165,7 +185,7 @@ int main(int argc, char *argv[]) {
   int zone_offset = 0;
   int ttl = INT_MAX;
   int opt;
-  while ((opt = getopt(argc, argv, "t:z:r:vs:hnc")) != -1) {
+  while ((opt = getopt(argc, argv, "t:z:r:vs:hncd:")) != -1) {
     switch (opt) {
       case 'v':
         verbose = true;
@@ -173,6 +193,10 @@ int main(int argc, char *argv[]) {
       case 't':
         chosen_time = ParseLocalTime(optarg);
         if (chosen_time <= 0) return usage("Invalid time string\n", argv[0]);
+        break;
+      case 'd':
+        chosen_time = OverrideDate(chosen_time, optarg);
+        if (chosen_time <= 0) return usage("Invalid date string\n", argv[0]);
         break;
       case 'z':
         zone_offset = atoi(optarg);
